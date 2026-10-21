@@ -1,0 +1,9 @@
+langchain==1.4.6
+langchain-core==1.6.12
+langchain-anthropic==1.7.6
+langchain-text-splitters==1.1.3
+langgraph==1.2.16
+numpy==2.5.4
+fastapi==0.158.1
+uvicorn[standard]==0.54.0
+sse-starlette==3.5.0

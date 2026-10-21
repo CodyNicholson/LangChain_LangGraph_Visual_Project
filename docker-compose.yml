@@ -1,0 +1,45 @@
+# Secrets come from the git-ignored .env file next to this one (Compose reads it for ${…}
+# interpolation). Only the variables listed below reach the backend container.
+services:
+  backend:
+    build: ./backend
+    container_name: langlab-backend
+    environment:
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      LLM_MODEL: ${LLM_MODEL:-claude-sonnet-5-5}
+      ALLOW_LIVE_MODE: ${ALLOW_LIVE_MODE:-true}
+      LIVE_RUNS_PER_MINUTE: ${LIVE_RUNS_PER_MINUTE:-6}
+      LIVE_RUNS_PER_HOUR: ${LIVE_RUNS_PER_HOUR:-120}
+      LANGSMITH_TRACING: ${LANGSMITH_TRACING:-false}
+      LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
+      LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-langchain-langgraph-visual-lab}
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Production build served by nginx on :80. The container name and tunnel-net match the
+  # Cloudflare tunnel route (http://rixus-frontend:80), so pipeline-run.sh can publish it.
+  frontend:
+    build: ./frontend
+    container_name: rixus-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - default
+      - tunnel-net
+    depends_on:
+      - backend
+
+networks:
+  tunnel-net:
+    external: true
