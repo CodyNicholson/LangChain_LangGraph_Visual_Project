@@ -99,8 +99,8 @@ const GRAPH_STEPS = [step('__start__', 'messages'), step('agent', 'model wants a
       <h3>Run this lab</h3>
       <ol class="run-steps">
         <li><code>cp .env.example .env</code> and optionally set <code>ANTHROPIC_API_KEY</code> (without it every demo uses the offline scripted model).</li>
-        <li><code>docker network create tunnel-net</code> once, then <code>docker compose up -d --build</code>.</li>
-        <li>Open <code>http://localhost:3000</code>. On the server, <code>./pipeline-run.sh</code> publishes it through the Cloudflare tunnel.</li>
+        <li><code>docker network create tunnel-net</code> once (the compose file joins it), then <code>docker compose up -d --build</code>.</li>
+        <li>Open <code>http://localhost:3000</code>.</li>
       </ol>
       <p class="muted"><a routerLink="/suite">Run every demo as a self-test →</a></p>
     </section>

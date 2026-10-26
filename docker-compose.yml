@@ -1,5 +1,7 @@
 # Secrets come from the git-ignored .env file next to this one (Compose reads it for ${…}
 # interpolation). Only the variables listed below reach the backend container.
+# Host ports are bound to 127.0.0.1: Docker's iptables rules bypass ufw, so a bare "3000:80"
+# be reachable from outside the server.
 services:
   backend:
     build: ./backend
@@ -14,26 +16,34 @@ services:
       LANGSMITH_API_KEY: ${LANGSMITH_API_KEY:-}
       LANGSMITH_PROJECT: ${LANGSMITH_PROJECT:-langchain-langgraph-visual-lab}
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    mem_limit: 1g
+    pids_limit: 256
+    cap_drop:
+      - ALL
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
       interval: 10s
       timeout: 5s
       retries: 10
 
-  # Production build served by nginx on :80. The container name and tunnel-net match the
-  # Cloudflare tunnel route (http://rixus-frontend:80), so pipeline-run.sh can publish it.
+  # Production build served by unprivileged nginx on :80
   frontend:
     build: ./frontend
     container_name: rixus-frontend
     ports:
-      - "3000:80"
+      - "127.0.0.1:3000:80"
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
+    cap_drop:
+      - ALL
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 100
     networks:
       - default
       - tunnel-net
